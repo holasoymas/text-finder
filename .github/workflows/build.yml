@@ -1,0 +1,38 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v.*.*.*'
+
+jobs:
+  build: 
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [win-x64, linux-x64, osx-x64]
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.0
+
+      - name: Restore depedencies 
+        run: dotnet restore TextFinder.Console/TextFinder.Console.csproj --locked-mode
+ 
+
+      - name: Publish 
+        run: |
+          dotnet publish TextFinder.Console/TextFinder.Console.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.runtime }}
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: publish/${{ matrix.runtime }}/TextFinder*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
