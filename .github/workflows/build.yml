@@ -5,40 +5,43 @@ on:
     branches:
       - main
     tags:
-      - 'v.*.*.*'  # Trigger on version tags (v0.1.1, v1.2.3, etc.)
+      - 'v*'  # Simplified tag pattern
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        runtime: [win-x64, linux-x64, osx-x64]  # Build for three platforms
+        runtime: [win-x64, linux-x64, osx-x64]
     
     steps:
-      # 1. Checkout the code
       - uses: actions/checkout@v4
 
-      # 2. Setup .NET SDK (we are using .NET 8.0, update if needed)
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 8  # You can change this to the specific version if needed
+          dotnet-version: 8
 
-      # 3. Restore dependencies
       - name: Restore dependencies
         run: dotnet restore TextFinder.Console/TextFinder.Console.csproj --locked-mode
 
-      # 4. Build and Publish the .NET application
       - name: Publish
         run: |
-          dotnet publish TextFinder.Console/TextFinder.Console.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.runtime }}
+          dotnet publish TextFinder.Console/TextFinder.Console.csproj \
+            -c Release \
+            -r ${{ matrix.runtime }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o publish/${{ matrix.runtime }}
 
-      # 5. Upload Release Assets (only run if tag is pushed)
       - name: Upload Release Assets
-        if: startsWith(github.ref, 'refs/tags/')  # Ensure this only runs for tags
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: publish/${{ matrix.runtime }}/TextFinder*
+          tag_name: ${{ github.ref_name }}  # Explicit tag reference
+          generate_release_notes: true
+          draft: false
+          create_release: true  # Force release creation
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub Token for authentication
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
