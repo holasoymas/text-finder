@@ -1,6 +1,7 @@
 # Ignore build artifacts
 bin/
 obj/
+/publish/
 
 # Ignore user-specific and IDE files
 .vscode/
