@@ -34,11 +34,20 @@ jobs:
             -p:PublishSingleFile=true \
             -o publish/${{ matrix.runtime }}
 
+      - name: Rename Executable
+        run: |
+          if [[ "${{ matrix.runtime }}" == "win-x64" ]]; then
+            mv publish/${{ matrix.runtime }}/TextFinder.Console.exe publish/${{ matrix.runtime }}/text-finder-windows-x64.exe
+          elif [[ "${{ matrix.runtime }}" == "linux-x64" ]]; then
+            mv publish/${{ matrix.runtime }}/TextFinder.Console publish/${{ matrix.runtime }}/text-finder-linux-x64
+          elif [[ "${{ matrix.runtime }}" == "osx-x64" ]]; then
+            mv publish/${{ matrix.runtime }}/TextFinder.Console publish/${{ matrix.runtime }}/text-finder-macos-x64
+          fi
+
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: publish/${{ matrix.runtime }}/TextFinder*
+          files: publish/${{ matrix.runtime }}/text-finder*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
