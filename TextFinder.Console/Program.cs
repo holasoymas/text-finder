@@ -1,10 +1,11 @@
 ﻿using UglyToad.PdfPig;
+using UglyToad.PdfPig.Core;
 
 public class Program
 {
   static void Main(String[] args)
   {
-    if (args.Length < 2)
+    if (args.Length != 2)
     {
       Console.ForegroundColor = ConsoleColor.Red;
       Console.WriteLine("Error: Invalid Arguments");
@@ -16,63 +17,89 @@ public class Program
     string file = args[0];
     string searchString = args[1];
 
-    using (PdfDocument pdf = PdfDocument.Open(file))
+    try
     {
-      int noOfPages = pdf.NumberOfPages;
-
-      Console.ForegroundColor = ConsoleColor.Blue;
-      Console.Write("Scanning ..... page ");
-      Console.ResetColor();
-
-      for (int i = 1; i <= noOfPages; i++)
+      // If File doesnt Exists
+      if (!File.Exists(file))
       {
-        // Update the page number dynamically on the same line
-        Console.SetCursorPosition(20, Console.CursorTop); // Move cursor to overwrite the page number
-        Console.Write($"{i}"); // Write the current page number
-
-        string pageText = pdf.GetPage(i).Text;
-
-        if (pageText.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-        {
-          string fullSentence = ExtractFullSentence(pageText, searchString);
-
-          Console.ForegroundColor = ConsoleColor.Green;
-          Console.WriteLine("\n\n---------------------------------------------");
-          Console.WriteLine($"Match Found!");
-          Console.ResetColor();
-
-          Console.WriteLine();
-          Console.Write($"- Page Number: ");
-          Console.ForegroundColor = ConsoleColor.Green;
-          Console.WriteLine($"{i}");
-          Console.ResetColor();
-
-          Console.WriteLine();
-          Console.Write($"- Input Sentence : ");
-          Console.ForegroundColor = ConsoleColor.Green;
-          Console.WriteLine($"\"{searchString}\"");
-          Console.ResetColor();
-
-          Console.WriteLine();
-          Console.Write($"- Full Sentence: ");
-          Console.ForegroundColor = ConsoleColor.Green;
-          Console.WriteLine($"\"{fullSentence}\"");
-          Console.ResetColor();
-
-          Console.ForegroundColor = ConsoleColor.Green;
-          Console.WriteLine("---------------------------------------------\n");
-          Console.ResetColor();
-
-          return;
-        }
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"Opps !,The File {file} Doesnt Exists, Plz give correct file path", nameof(file));
+        Console.ResetColor();
+        return;
       }
 
+      using (PdfDocument pdf = PdfDocument.Open(file))
+      {
+        int noOfPages = pdf.NumberOfPages;
+
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.Write("Scanning ..... page ");
+        Console.ResetColor();
+
+        for (int i = 1; i <= noOfPages; i++)
+        {
+          // Update the page number dynamically on the same line
+          Console.SetCursorPosition(20, Console.CursorTop); // Move cursor to overwrite the page number
+          Console.Write($"{i}"); // Write the current page number
+
+          string pageText = pdf.GetPage(i).Text;
+
+          if (pageText.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+          {
+            string fullSentence = ExtractFullSentence(pageText, searchString);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\n\n---------------------------------------------");
+            Console.WriteLine($"Match Found!");
+            Console.ResetColor();
+
+            Console.WriteLine();
+            Console.Write($"- Page Number: ");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"{i}");
+            Console.ResetColor();
+
+            Console.WriteLine();
+            Console.Write($"- Input Sentence : ");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"\"{searchString}\"");
+            Console.ResetColor();
+
+            Console.WriteLine();
+            Console.Write($"- Full Sentence: ");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"\"{fullSentence}\"");
+            Console.ResetColor();
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("---------------------------------------------\n");
+            Console.ResetColor();
+
+            return;
+          }
+        }
+
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\n---------------------------------------------");
+        Console.WriteLine("No match found in the document.");
+        Console.WriteLine("-----------------------------------------------");
+        Console.ResetColor();
+      }
+    }
+    catch (PdfDocumentFormatException ex)
+    {
       Console.ForegroundColor = ConsoleColor.Red;
-      Console.WriteLine("\n---------------------------------------------");
-      Console.WriteLine("No match found in the document.");
-      Console.WriteLine("-----------------------------------------------");
+      Console.WriteLine($"Invalid PDF file, {ex.Message}");
       Console.ResetColor();
     }
+    catch (UnauthorizedAccessException ex)
+    {
+      Console.ForegroundColor = ConsoleColor.Red;
+      Console.WriteLine($"Error : Unable to access file, {ex.Message}");
+      Console.ResetColor();
+    }
+
+    // --------------- FUNCTION TO EXTRACT FULL SENTENCE -------------------------- 
 
     static string ExtractFullSentence(string text, string subSentence)
     {
@@ -100,4 +127,3 @@ public class Program
     }
   }
 }
-
