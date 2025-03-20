@@ -37,11 +37,9 @@ fetch_latest_release_url() {
         echo "No matching asset found for $os_arch in the latest release."
         exit 1
     fi
-
     echo "$asset_url"
 }
 
-# Main installation logic
 main() {
     echo "Detecting OS and architecture..."
     os_arch=$(detect_os_and_arch)
@@ -126,6 +124,5 @@ update_path() {
 
     return 0
 }
-
 # Run the main function
 main
